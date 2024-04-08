@@ -1,0 +1,32 @@
+{
+    "global": {
+        "wi_fi": {
+            "ssid": "",
+            "password": ""
+        }
+    },
+    "project": {
+        "pwm_pin": 4,
+        "pwm_freq": 1000,
+        "duty_min": 10000,
+        "duty_max": 65535,
+        "temp_factor": true,
+        "temp_factor_arg": 500,
+        "temp_table": [
+            {"duty": 11000, "temp_min": 0, "temp_max": 29},
+            {"duty": 18000, "temp_min": 30, "temp_max": 31},
+            {"duty": 30000, "temp_min": 32, "temp_max": 33},
+            {"duty": 33000, "temp_min": 34, "temp_max": 35},
+            {"duty": 36000, "temp_min": 36, "temp_max": 37},
+            {"duty": 40000, "temp_min": 38, "temp_max": 39},
+            {"duty": 40000, "temp_min": 40, "temp_max": 41},
+            {"duty": 40000, "temp_min": 42, "temp_max": 43},
+            {"duty": 40000, "temp_min": 44, "temp_max": 45},
+            {"duty": 40000, "temp_min": 46, "temp_max": 47},
+            {"duty": 40000, "temp_min": 48, "temp_max": 49},
+            {"duty": 40000, "temp_min": 51, "temp_max": 60},
+            {"duty": 50000, "temp_min": 61, "temp_max": 70},
+            {"duty": 65535, "temp_min": 71, "temp_max": 150}
+        ]
+    }
+}

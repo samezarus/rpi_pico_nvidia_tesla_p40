@@ -1,12 +1,33 @@
 from machine import Pin, I2C, ADC, PWM
+
+import network
+import socket
+
+import json
+
 from utime import sleep_ms
 
 
-MAX_DUTY = 65535
-MIN_DUTY = 20000
+with open("conf.json") as f:
+    conf = json.load(f)
+
+# wifi (only for W ver)
+WIFI_SSID = conf["global"]["wi_fi"]["ssid"]
+WIFI_PASSWORD = conf["global"]["wi_fi"]["password"]
+
+# cooler params
+COOLER_PWM_PIN = conf["project"]["pwm_pin"]
+COOLER_PWM_FREQ = conf["project"]["pwm_freq"]
+DUTY_MAX = conf["project"]["duty_max"]
+DUTY_MIN = conf["project"]["duty_min"]
+
+# temp params
+TEMP_TABLE = conf["project"]["temp_table"]
+TEMP_FACTOR = conf["project"]["temp_factor"]
+TEMP_FACTOR_ARG = conf["project"]["temp_factor_arg"]
 
 
-class Temperature():
+class Temperature:
         def __init__(self):
                 self.sensor = ADC(4)
                 self.factor = 3.3 / (65535)
@@ -17,33 +38,41 @@ class Temperature():
 
 
 class Cooler:
-        def __init__(self, pin: int = 4, freq: int = 1000, duty: int = MIN_DUTY):
+        def __init__(self, pin: int = 4, freq: int = 1000, duty: int = 20000):
                 self.pwm = PWM(Pin(pin), freq=freq, duty_u16=duty)
 
         def set_speed(self, duty: int):
                 self.pwm.duty_u16(duty)
 
 
-tsensor = Temperature()
-cooler = Cooler()
+class WiFi:
+        def __init__(self, ssid: str, password: str):
+                self.ssid = ssid
+                self.password = password
 
-speed = PWM(Pin(4), freq=1000, duty_u16=0)
+
+tsensor = Temperature()
+cooler = Cooler(pin=COOLER_PWM_PIN, freq=COOLER_PWM_FREQ, duty=DUTY_MIN)
+wifi = WiFi(WIFI_SSID, WIFI_PASSWORD)
+
+
 
 print("Starting Now")
       
 while True:
         tmprtr = tsensor.data()
+        # print(tmprtr)
         sleep_ms(500)
 
-        if tmprtr < 30:
-                cooler.set_speed(MIN_DUTY)
-        elif tmprtr > 30 and tmprtr < 40:
-                cooler.set_speed(MIN_DUTY + 10000)
-        elif tmprtr > 40 and tmprtr < 50:
-                cooler.set_speed(MIN_DUTY + 20000)
-        elif tmprtr > 50 and tmprtr < 60:
-                cooler.set_speed(MIN_DUTY + 30000)
-        elif tmprtr > 60 and tmprtr < 70:
-                cooler.set_speed(MIN_DUTY + 40000)
+        if TEMP_FACTOR and TEMP_FACTOR_ARG > 0:
+                duty = round(DUTY_MIN + tmprtr * TEMP_FACTOR_ARG)
+                print(tmprtr, " - ", duty)
+                cooler.set_speed(duty)
         else:
-             cooler.set_speed(MAX_DUTY)
+                for tparam in TEMP_TABLE:
+                        if tmprtr > tparam["temp_min"] and tmprtr <= tparam["temp_max"]:
+                                cooler.set_speed(tparam["duty"])
+                                print(tmprtr, " - ", tparam["duty"])
+                                break
+                        else:
+                                continue
